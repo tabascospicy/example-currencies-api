@@ -2,6 +2,7 @@ package currencies
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	s "strings"
@@ -9,15 +10,24 @@ import (
 	readEnv "github.com/spicyt/currencies/pkg"
 )
 
-
 type RapiResponse struct {
-	Code string  `json:"code"`
-	Message      string `json:"msg"`
-	Base   bool   `json:"base"`
-	Rates 		map[string]float64 `json:"rates"`
+	Code    string             `json:"code"`
+	Message string             `json:"msg"`
+	Base    string             `json:"base"`
+	Rates   map[string]float64 `json:"rates"`
 }
 
+type FloatRatesRateItem struct {
+	Code        string  `json:"code"`
+	AlphaCode   string  `json:"alphaCode"`
+	NumericCode string  `json:"numericCode"`
+	Name        string  `json:"name"`
+	Rate        float64 `json:"rate"`
+	Date        string  `json:"date"`
+	InverseRate float64 `json:"inverseRate"`
+}
 
+type FloatRatesResponse map[string]FloatRatesRateItem
 
 type CurrencyExchangeRateInput struct {
 	CurrencyPair string `json:"currency-pair"`
@@ -25,10 +35,8 @@ type CurrencyExchangeRateInput struct {
 
 type CurrencyExchangeRateResponse map[string]float64
 
-
-
 type DecodeError struct {
-	Err error
+	Err     error
 	Context string
 }
 
@@ -36,19 +44,33 @@ func (d *DecodeError) Error() string {
 	return "Error decoding data: " + d.Err.Error() + " with context " + d.Context
 }
 
+type FlotApiResponseError struct {
+	Err     error
+	Message string
+}
+
+func (d *FlotApiResponseError) Error() string {
+	return "Error rquesting data: " + d.Err.Error() + d.Message
+}
 
 func DecodeResponse(response io.Reader, data interface{}, name string) error {
-	err := json.NewDecoder(response).Decode(&data)
+
+	val, err := io.ReadAll(response)
+
 	if err != nil {
 		return &DecodeError{Err: err, Context: name}
 	}
 
-//	fmt.Printf("Data: %v\n", data)
+	errJson := json.Unmarshal(val, &data)
+
+	if errJson != nil {
+		return &DecodeError{Err: err, Context: name}
+	}
+
 	return nil
 }
 
-
-func RequestCurrencyExchangeRateFromRapid(CurrencyOrigin string , CurrencyTarget string) (RapiResponse, error) {
+func RequestCurrencyExchangeRateFromRapid(CurrencyOrigin string, CurrencyTarget string, ch chan float64) {
 	RapidApiKey := readEnv.ReadVariable("RapidAPIKey")
 	RapidUrl := readEnv.ReadVariable("RapidUrl")
 	RapidHost := readEnv.ReadVariable("RapidAPIHost")
@@ -56,30 +78,51 @@ func RequestCurrencyExchangeRateFromRapid(CurrencyOrigin string , CurrencyTarget
 	requestParams := map[string]string{"from": CurrencyOrigin, "to": CurrencyTarget}
 	requestHeaders := map[string]string{"X-RapidAPI-Key": RapidApiKey, "X-RapidAPI-Host": RapidHost}
 
-	requestConfig := RequestConfig{ 
-		Url: RapidUrl, 
-		Params: requestParams, 
+	requestConfig := RequestConfig{
+		Url:     RapidUrl,
+		Params:  requestParams,
 		Headers: requestHeaders}
 
-	response, err := Get(requestConfig)
-	
-	if err != nil {
-		return RapiResponse{} , err
-	}
-
-	defer response.Body.Close()
+	response, _ := Get(requestConfig)
 
 	var responseJson RapiResponse
 
- 	errReq := DecodeResponse(response.Body, &responseJson, "RapiResponse") 
-	
-  
-	return responseJson, errReq
+	DecodeResponse(response.Body, &responseJson, "RapiResponse")
+	defer response.Body.Close()
+
+	result := responseJson.Rates[CurrencyTarget]
+
+	if len(ch) > 0 {
+		close(ch)
+		return
+	}
+
+	ch <- result
 }
 
+func RequestCurrencyExchangeRateFromFloatRates(CurrencyOrigin string, CurrencyTarget string, ch chan float64) {
 
+	url := fmt.Sprintf("https://www.floatrates.com/daily/%s.json", s.ToLower(CurrencyOrigin))
+	requestConfig := RequestConfig{
+		Url: url,
+	}
 
-func GetCurrencyExchangeHandler(w http.ResponseWriter, r *http.Request){
+	response, _ := Get(requestConfig)
+
+	var apiRates FloatRatesResponse
+
+	DecodeResponse(response.Body, &apiRates, "FloatRatesResponse")
+	defer response.Body.Close()
+	result := apiRates[s.ToLower(CurrencyTarget)].Rate
+
+	if len(ch) > 0 {
+		close(ch)
+		return
+	}
+	ch <- result
+}
+
+func GetCurrencyExchangeHandler(w http.ResponseWriter, r *http.Request) {
 	readEnv.Init()
 	var requestInput CurrencyExchangeRateInput
 
@@ -90,24 +133,32 @@ func GetCurrencyExchangeHandler(w http.ResponseWriter, r *http.Request){
 		w.Write([]byte("Invalid request body"))
 		return
 	}
+	ch := make(chan float64, 2)
 
-	splitedCurrency := s.Split(requestInput.CurrencyPair, "-") 
+	splitedCurrency := s.Split(requestInput.CurrencyPair, "-")
 
-	
-	response, err := RequestCurrencyExchangeRateFromRapid(splitedCurrency[0], splitedCurrency[1])
+	go RequestCurrencyExchangeRateFromRapid(splitedCurrency[0], splitedCurrency[1], ch)
+	go RequestCurrencyExchangeRateFromFloatRates(splitedCurrency[0], splitedCurrency[1], ch)
 
-	if(err != nil){
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Error getting exchange rate: " + err.Error()))
-		return
+	resultCounter := 0
+	var resultRate float64
+	// we create a loop to listen when the first response arrives
+	for resultCounter < 1 {
+		result, ok := <-ch
+		if ok {
+			resultCounter += 1
+			resultRate = result
+			close(ch)
+		}
 	}
 
 	resultKey := s.Join([]string{splitedCurrency[0], splitedCurrency[1]}, "-")
 
-	result := CurrencyExchangeRateResponse{resultKey: response.Rates[splitedCurrency[1]]}
-  
+	result := CurrencyExchangeRateResponse{resultKey: resultRate}
+
 	jsonResponse, _ := json.Marshal(result)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(jsonResponse))
+
 }

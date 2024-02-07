@@ -6,19 +6,19 @@ import (
 )
 
 type RequestBuildError struct {
-	Url string
+	Url    string
 	Method string
-	Err error
+	Err    error
 }
 
 type RequestResponseError struct {
 	statusCode int
-	err string
+	err        string
 }
 
 type RequestConfig struct {
-	Url string
-	Params map[string]string
+	Url     string
+	Params  map[string]string
 	Headers map[string]string
 }
 
@@ -31,13 +31,13 @@ func (r *RequestResponseError) Error() string {
 }
 
 // custom wrapper to make a get request
-func Get ( config RequestConfig ) (*http.Response, error) {
+func Get(config RequestConfig) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodGet, config.Url, nil)
 	if err != nil {
 		return nil, &RequestBuildError{Url: config.Url, Method: http.MethodGet, Err: err}
 	}
-  // set query params
-	if config.Params == nil {
+	// set query params
+	if config.Params != nil {
 		queryParams := req.URL.Query()
 		// add query params for each key value pair
 		for key, value := range config.Params {
@@ -45,10 +45,10 @@ func Get ( config RequestConfig ) (*http.Response, error) {
 		}
 		req.URL.RawQuery = queryParams.Encode()
 	}
-	
+
 	// set headers if needed
-	if config.Headers == nil {
-	// add headers for each key value pair
+	if config.Headers != nil {
+		// add headers for each key value pair
 		for key, value := range config.Headers {
 			req.Header.Set(key, value)
 		}
@@ -59,6 +59,6 @@ func Get ( config RequestConfig ) (*http.Response, error) {
 	if err != nil {
 		return nil, &RequestResponseError{statusCode: response.StatusCode, err: err.Error()}
 	}
-	
-	return response , err
+
+	return response, nil
 }

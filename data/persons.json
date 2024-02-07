@@ -1,0 +1,12 @@
+[
+    { "id": "1", "personName": "Cadanaut Ruben", "salary": { "value": "20", "currency": "USD" } },
+    { "id": "2", "personName": "Cadanaut Juan", "salary": { "value": "40", "currency": "USD" } },
+    { "id": "3", "personName": "Cadanaut Albert", "salary": { "value": "30", "currency": "USD" } },
+    { "id": "4", "personName": "Cadanaut Max", "salary": { "value": "40", "currency": "USD" } },
+    { "id": "5", "personName": "Cadanaut G", "salary": { "value": "50", "currency": "USD" } },
+    { "id": "6", "personName": "Cadanaut A", "salary": { "value": "201", "currency": "USD" } },
+    { "id": "7", "personName": "Cadanaut M", "salary": { "value": "110", "currency": "USD" } },
+    { "id": "8", "personName": "Cadanaut Z", "salary": { "value": "120", "currency": "USD" } },
+    { "id": "9", "personName": "Cadanaut Y", "salary": { "value": "140", "currency": "USD" } },
+    { "id": "10", "personName": "Cadanaut X", "salary": { "value": "3010", "currency": "USD" } }
+]

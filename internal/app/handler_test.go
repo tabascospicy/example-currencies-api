@@ -18,23 +18,22 @@ func Init() {
 	os.Setenv("testing", "true")
 	err := godotenv.Load("../../api.env")
 
-  if err != nil {
+	if err != nil {
 		fmt.Printf(" %v\n", err)
-    log.Fatalf("Error loading .env file",)
-  }
+		log.Fatalf("Error loading .env file")
+	}
 
 }
 
 func TestGetCurrencyExchangeHandler(t *testing.T) {
 	Init()
-	req, err := http.NewRequest("GET", "/", bytes.NewReader([]byte(`{"currencyPair": "USD-EUR"}`)))
+	req, err := http.NewRequest("GET", "/", bytes.NewReader([]byte(`{"currency-pair": "USD-EUR"}`)))
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-
 
 	rr := httptest.NewRecorder()
 
@@ -44,18 +43,15 @@ func TestGetCurrencyExchangeHandler(t *testing.T) {
 		t.Errorf("Handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	expectedResponse := CurrencyExchangeRateResponse{
-		"currency-pair": 0.92,
-	}
-
 	var gotResponse CurrencyExchangeRateResponse
-	
+
 	if err := json.Unmarshal(rr.Body.Bytes(), &gotResponse); err != nil {
 		t.Errorf("Handler returned unexpected  invalid response %v", err)
 	}
-	
-	if expectedResponse["currency-pair"] != gotResponse["currency-pair"] {
-		t.Errorf("Handler returned unexpected currencyPair: got %v want %v", gotResponse["currency-pair"] , expectedResponse["currency-pair"])
+	fmt.Print(gotResponse["USD-EUR"])
+
+	if gotResponse["USD-EUR"] <= 0 {
+		t.Errorf("Handler returned unexpected currencyPair: got %v want number above 0", gotResponse["currency-pair"])
 	}
 
 	expectedContentType := "application/json"
