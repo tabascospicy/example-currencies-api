@@ -71,14 +71,18 @@ func DecodeJson(response io.Reader, data interface{}, name string) error {
 }
 
 func main() {
-	jsonFile, err := os.OpenFile("data/persons.json")
 
-	if err != nil {
-		log.Fatal("Error reading file: " + err.Error())
-	}
+	 // Open the JSON file
+	 file, err := os.Open("data.json")
+	 if err != nil {
+		 log.Fatalf("Error opening file: %v", err)
+	 }
+	 defer file.Close()
+ 
+
 	var personsList PersonsList
 	personsList.Sort("ASC")
 	personsList.Sort("DESC")
 
-	DecodeJson(jsonFile, personsList, "Persons")
+	DecodeJson(file, personsList, "Persons")
 }
