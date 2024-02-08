@@ -56,6 +56,8 @@ func Get(config RequestConfig) (*http.Response, error) {
 
 	response, err := http.DefaultClient.Do(req)
 
+	fmt.Println(req.URL)
+
 	if err != nil {
 		return nil, &RequestResponseError{statusCode: response.StatusCode, err: err.Error()}
 	}

@@ -102,7 +102,11 @@ func RequestCurrencyExchangeRateFromRapid(CurrencyOrigin string, CurrencyTarget 
 
 func RequestCurrencyExchangeRateFromFloatRates(CurrencyOrigin string, CurrencyTarget string, ch chan float64) {
 
-	url := fmt.Sprintf("https://www.floatrates.com/daily/%s.json", s.ToLower(CurrencyOrigin))
+	fileExtension := "json"
+
+	floatRateUrl := readEnv.ReadVariable("FloatRatesUrl")
+
+	url := fmt.Sprintf("%s%s.%s",floatRateUrl, s.ToLower(CurrencyOrigin), fileExtension)
 	requestConfig := RequestConfig{
 		Url: url,
 	}
@@ -115,15 +119,18 @@ func RequestCurrencyExchangeRateFromFloatRates(CurrencyOrigin string, CurrencyTa
 	defer response.Body.Close()
 	result := apiRates[s.ToLower(CurrencyTarget)].Rate
 
+	// TODO: comment later
+
 	if len(ch) > 0 {
 		close(ch)
 		return
 	}
+	
 	ch <- result
 }
 
 func GetCurrencyExchangeHandler(w http.ResponseWriter, r *http.Request) {
-	readEnv.Init()
+
 	var requestInput CurrencyExchangeRateInput
 
 	err := DecodeResponse(r.Body, &requestInput, "CurrencyExchangeRateInput")
@@ -148,7 +155,6 @@ func GetCurrencyExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		if ok {
 			resultCounter += 1
 			resultRate = result
-			close(ch)
 		}
 	}
 

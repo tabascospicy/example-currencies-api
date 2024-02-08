@@ -1,0 +1,67 @@
+name: Deploy to DEV
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Setup GO environment
+              uses: actions/setup-go@v5
+              with:
+               go-version: '>=1.21.6'
+            - run: go version
+                   # The Go version to download (if necessary) and use.
+
+            - name: Reading the env from Github Secrets
+              env:
+                DEPLOYING_ENV_FILE: ${{ secrets.DEPLOYING_ENV_FILE }}
+              run: |
+                  touch .env
+                  echo "$DEPLOYING_ENV_FILE" >> .env
+                  cat .env
+
+            - name: Install dependencies
+              run: go mod download
+
+            - name: Run tests
+              run: make run/test
+
+            - name: Generate bin
+              run: make run/build/production
+
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-west-2
+
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v1
+            - run: echo "Logged in to Amazon ECR" | echo ${{steps.login-ecr.outputs.registry}}
+
+            - name: Build, tag, and push image to Amazon ECR
+              id: build-image
+              env:
+                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  ECR_REPOSITORY: example-api-currencies
+                  IMAGE_TAG: latest
+              run: |
+                  docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+                  echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+            - name: Update ECS Service
+              env:
+                  SERVICE: example-currencies-api-public
+                  CLUSTER: example-api-currencies-cluster
+                  REGION: us-west-2
+              run: |
+                  aws ecs update-service --cluster ${CLUSTER} --service ${SERVICE} --force-new-deployment --region ${REGION}
