@@ -1,4 +1,4 @@
-package app
+package currencies
 
 import (
 	"encoding/json"

@@ -1,4 +1,4 @@
-package app
+package currencies
 
 import (
 	"github.com/go-chi/chi/v5"

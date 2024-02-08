@@ -3,7 +3,8 @@ package main
 import (
 	"net/http"
 	"os"
-	app "github.com/spicyt/currencies/internal/app"
+
+	app "github.com/spicyt/currencies/internal/currencies"
 )
 
 
