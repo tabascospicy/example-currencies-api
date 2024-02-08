@@ -1,4 +1,4 @@
-package currencies
+package app
 
 import (
 	"bytes"
@@ -99,6 +99,38 @@ expectedErr: nil,
 			t.Errorf("Handler returned wrong content type: got %v want %v", contentType, expectedContentType)
 		}
 	})
+
+	t.Run("Test with the two APIs failing", func(t *testing.T) {
+		os.Setenv("RapidAPIKey", "TEST-KEY")
+		os.Setenv("RapidAPIHost", "TEST-HOST")
+		//  just add some invalid url to make the request fail in purpose
+		os.Setenv("RapidUrl", "http://testUrl.com")
+		os.Setenv("FloatRatesUrl", "http://testUrl2.com")
+		req, err := http.NewRequest("GET", "/", bytes.NewReader([]byte(`{"currency-pair": "USD-EUR"}`)))
+
+		if err != nil {
+			t.Fatal(err)
+		}
+	
+		req.Header.Set("Content-Type", "application/json")
+	
+		rr := httptest.NewRecorder()
+	
+		GetCurrencyExchangeHandler(rr, req)
+
+		if status := rr.Code; status != http.StatusBadRequest {
+			t.Errorf("Handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
+		}
+	
+		errorMessage := string(rr.Body.Bytes())
+
+		if errorMessage != "Error requesting data from the APIs" {
+			t.Errorf("Handler returned unexpected  invalid response %v", err)
+		}
+	
+	})
+
+
 
 
 

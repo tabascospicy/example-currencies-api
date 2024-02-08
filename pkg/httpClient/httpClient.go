@@ -1,7 +1,8 @@
-package currencies
+package httpClient
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -20,6 +21,7 @@ type RequestConfig struct {
 	Url     string
 	Params  map[string]string
 	Headers map[string]string
+	Body 	io.Reader
 }
 
 func (r *RequestBuildError) Error() string {
@@ -32,7 +34,7 @@ func (r *RequestResponseError) Error() string {
 
 // custom wrapper to make a get request
 func Get(config RequestConfig) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodGet, config.Url, nil)
+	req, err := http.NewRequest(http.MethodGet, config.Url, config.Body)
 	if err != nil {
 		return nil, &RequestBuildError{Url: config.Url, Method: http.MethodGet, Err: err}
 	}
@@ -54,13 +56,20 @@ func Get(config RequestConfig) (*http.Response, error) {
 		}
 	}
 
+	// make the request
 	response, err := http.DefaultClient.Do(req)
 
 	fmt.Println(req.URL)
 
+	if err != nil && response == nil {
+		return nil, &RequestResponseError{statusCode: 500, err: err.Error()}
+	}
 	if err != nil {
 		return nil, &RequestResponseError{statusCode: response.StatusCode, err: err.Error()}
 	}
 
+
+
+ // return result
 	return response, nil
 }
