@@ -35,5 +35,6 @@ with this script you can use multiple arguments <br>
 `outputDir=./`: if included it will create a csv file with the filter result <br>
 
 also it needs the environment variable `CurrencyExchangeApiUrl=http://localhost:8080` included in the makefile <br>
+still you can test the production api with the url from the aws deployment: http://example-currencies-lb-1760636663.us-west-2.elb.amazonaws.com/
 
 Hope You like it and left a star
