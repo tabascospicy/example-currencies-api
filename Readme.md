@@ -2,9 +2,9 @@
 
 ## API currencies 
 
-## Run API 
+### Run API 
 
-## Install Dependencies
+#### Install Dependencies
 
     RUN go mod download
 
@@ -22,11 +22,11 @@ example
 	RapidUrl=https://currency-conversion-and-exchange-rates.p.rapidapi.com/latest \
 	FloatRatesUrl=https://www.floatrates.com/daily/ go run cmd/currencies/main.go
 
-expected outpud
+expected output
 
     Server running on port 8080
 
-## Run Script
+#### Run Script
 
 with this script you can use multiple arguments 
 `-file=data/persons.json`: path to .json with the list of persons
