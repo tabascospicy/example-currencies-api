@@ -13,7 +13,7 @@ to run api you can use makefile
     make run/api/local
 
 in order to have the correct environment remember to add the RapidAPIKey to the makefile <br>
-you can find a makefile with the API Key on the .zip I've sent with the email response or look for your own on [RAPID](https://rapidapi.com/juhestudio-juhestudio-default/api/exchange-rate-api1/) <br>
+you can find a makefile with the API Key on the email I've sent with the email response or look for your own on [RAPID](https://rapidapi.com/juhestudio-juhestudio-default/api/exchange-rate-api1/) <br>
 example
 
   run/api/local:
