@@ -176,43 +176,4 @@ func TestReadPersonsListAndOrder(t *testing.T) {
 
 	})
 
-/*
-	t.Run("Test Read Person Lists filtered by salary", func(t *testing.T) {
-		// Test the function ReadPersonsListAndOrder
-		// of the main.go file
-		testRapidApi:= testServer{
-			name: "happy-api-local-server-response",
-			server: httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(`{
-					"NPR-USD": 0.92,
-					 "EUR-USD":0.5, 
-					 "JPY-USD":1.4,
-					 "NZD-USD":0.3
-				}`))
-		})),
-		expectedErr: nil,
-		}
-		
-		os.Setenv("CurrencyExchangeApiUrl", testRapidApi.server.URL);
-	personsList := PersonsList{}
-	json.Unmarshal([]byte(TestPersonsListJson), &personsList)
-
-	result :=	ReadAndFilterBySalary(personsList, 200)
-  
-  expectResult := 0
-
-	for _, person := range result {
-		if val,_ :=strconv.Atoi(person.Salary.Value); val < 200 {
-			expectResult++
-		}
-	}
-
-	if(expectResult > 0){
-		t.Errorf("Error filtering by salary")
-	}
-
-	fmt.Println(result)
-
-	})*/
 }
