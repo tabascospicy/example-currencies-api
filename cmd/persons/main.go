@@ -238,6 +238,8 @@ func OperateWithPersonsList(personsList  PersonsList, order string) PersonGroupe
 
 	fmt.Printf("Persons ordered by salary :%v"  , orderedBySalary)	
 
+	
+
 	return orderedBySalary
 }
 
@@ -251,14 +253,14 @@ func ReadAndFilterBySalary(personsList PersonsList, salaryMin int) PersonsList{
 func main() {
 // os.args[1]
 
-	outputPtr := flag.String("output", "persons.json", "order")
+	outputDirPtr := flag.String("outputDir", "", "order")
 	filePtr := flag.String("file", "data/persons.json", "file to read")
 	orderPtr := flag.String("order", "ASC", "order")
 	salaryFilterPtr := flag.Int("salary", 0, "salary filter")
 
 	flag.Parse()
 
-	fmt.Println("outputPtr:", *outputPtr)
+	fmt.Println("outputPtr:", *outputDirPtr)
 	fmt.Println("filePtr:", *filePtr)
 	fmt.Println("orderPtr:", *orderPtr)
 
@@ -266,9 +268,32 @@ func main() {
 
 	fmt.Println(args)
 
-	personsList := ReadPersonsList(*filePtr)
-	OperateWithPersonsList(personsList, *orderPtr)
-  result := ReadAndFilterBySalary(personsList, *salaryFilterPtr)
 
-	println(result)
+  
+
+	personsList := ReadPersonsList(*filePtr)
+	orderedBySalary := OperateWithPersonsList(personsList, *orderPtr)
+
+	if *salaryFilterPtr != 0 {
+		personsList = ReadAndFilterBySalary(personsList, *salaryFilterPtr)
+	}
+
+	fmt.Println(orderedBySalary)
+
+
+
+	if(*outputDirPtr == ""){
+		return
+	}
+
+	file,_ := os.Create(*outputDirPtr + "persons.csv")
+	headers := "ID,PersonName,SalaryValue,SalaryCurrency\n"
+	file.WriteString(headers)
+
+	for _, person := range personsList {
+		file.WriteString(person.ID + "," + person.PersonName + "," + person.Salary.Value + "," + person.Salary.Currency + "\n")
+	}
+
+	file.Close()
+
 }
