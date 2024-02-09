@@ -18,4 +18,4 @@ run/api/local: build-local
 	FloatRatesUrl=https://www.floatrates.com/daily/ go run cmd/currencies/main.go
 
 run/script/local: 
-	@echo "Running the application" & CurrencyExchangeApiUrl=http://localhost:8080 go run cmd/persons/main.go  -outputDir=./ -file=data/persons.json -order=ASC -salary=0
+	@echo "Running the application" & CurrencyExchangeApiUrl=http://example-currencies-lb-1760636663.us-west-2.elb.amazonaws.com/ go run cmd/persons/main.go  -outputDir=./ -file=data/persons.json -order=ASC -salary=0
