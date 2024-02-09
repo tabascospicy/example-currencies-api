@@ -60,7 +60,7 @@ jobs:
 
             - name: Update ECS Service
               env:
-                  SERVICE: example-currencies-api-task
+                  SERVICE: example-currencies-api-task-ip-2
                   CLUSTER: example-api-currencies-cluster
                   REGION: us-west-2
               run: |
