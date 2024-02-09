@@ -2,9 +2,9 @@
 
 ## API currencies 
 
-### Run API 
+#### Run API 
 
-#### Install Dependencies
+Install Dependencies
 
     RUN go mod download
 
