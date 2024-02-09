@@ -28,12 +28,12 @@ expected output
 
 #### Run Script
 
-with this script you can use multiple arguments 
-`-file=data/persons.json`: path to .json with the list of persons
-`-order=ASC`: ASC or DESC order the person list 
-`-salary=100`: Filter the persons by people with more than 100 USD in salary
-`outputDir=./`: if included it will create a csv file with the filter result 
+with this script you can use multiple arguments <br>
+`-file=data/persons.json`: path to .json with the list of persons <br>
+`-order=ASC`: ASC or DESC order the person list <br>
+`-salary=100`: Filter the persons by people with more than 100 USD in salary <br>
+`outputDir=./`: if included it will create a csv file with the filter result <br>
 
-also it needs the environment variable `CurrencyExchangeApiUrl=http://localhost:8080` included in the makefile
+also it needs the environment variable `CurrencyExchangeApiUrl=http://localhost:8080` included in the makefile <br>
 
 Hope You like it and left a star
